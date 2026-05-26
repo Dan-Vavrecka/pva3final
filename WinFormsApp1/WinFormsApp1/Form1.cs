@@ -1,0 +1,320 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace WinFormsApp1
+{
+    public partial class Form1 : Form
+    {
+        // UI controls
+        private ComboBox? cbPlayers;
+        private NumericUpDown? nudDiceCount;
+        private Label? lblPlayers;
+        private Label? lblDice;
+        private RadioButton? rbRounds;
+        private RadioButton? rbTarget;
+        private NumericUpDown? nudRounds;
+        private NumericUpDown? nudTarget;
+        private Button? btnStart;
+        private Button? btnRoll;
+        private Label? lblStatus;
+        private Label? lblScores;
+        private System.Windows.Forms.Timer? cpuTimer;
+        // private PictureBox[] pbDice; // removed
+        private PictureBox[]? pbDice1;
+        private PictureBox[]? pbDice2;
+        private Button? btnEnd;
+
+        // Game state
+        private Random rnd = new Random();
+        private int currentPlayer = 0;
+        // playersCount will be total players (always 2 internally); isSinglePlayer signals CPU mode
+        private int playersCount = 2;
+        private bool isSinglePlayer = true;
+        private int diceCount = 6;
+        private int roundsLimit = 5;
+        private int targetScore = 10000;
+        private int currentRound = 0;
+        private int[] totalScores = new int[2];
+        private int currentTurnAccumulated = 0; // body v aktuálním kole
+        private bool gameStarted = false;
+
+        public Form1()
+        {
+            InitializeComponent();
+            // default values
+            cbPlayers.SelectedIndex = 0;
+            nudDiceCount.Value = 6;
+            rbRounds.Checked = true;
+            UpdateStatus("Připravit hru");
+        }
+
+        private void btnEnd_Click(object sender, EventArgs e)
+        {
+            // okamžité ukončení hry a vynulování skóre
+            gameStarted = false;
+            btnRoll.Enabled = false;
+            btnStart.Enabled = true;
+            totalScores = new int[2];
+            currentTurnAccumulated = 0;
+            currentRound = 0;
+            currentPlayer = 0;
+            UpdateScoresLabel();
+            UpdateStatus("Hra ukončena uživatelem. Skóre vynulováno.");
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            isSinglePlayer = cbPlayers.SelectedIndex == 0;
+            playersCount = 2; // vždy interně dva hráči (druhý je CPU pokud isSinglePlayer)
+            diceCount = (int)nudDiceCount.Value;
+            roundsLimit = (int)nudRounds.Value;
+            targetScore = (int)nudTarget.Value;
+            currentPlayer = 0;
+            currentRound = 1;
+            totalScores = new int[2];
+            currentTurnAccumulated = 0;
+            gameStarted = true;
+            btnRoll.Enabled = true;
+            btnStart.Enabled = false;
+            UpdateScoresLabel();
+            UpdateStatus($"Hraje hráč {currentPlayer + 1}");
+            RefreshDiceDisplayForPlayer(0, new int[diceCount]);
+        }
+
+        private void btnRoll_Click(object sender, EventArgs e)
+        {
+            if (!gameStarted) return;
+            // proveď hod kostkami
+            int[] rolls = new int[diceCount];
+            for (int i = 0; i < diceCount; i++) rolls[i] = rnd.Next(1, 7);
+            RefreshDiceDisplayForPlayer(currentPlayer, rolls);
+            int score = CalculateScore(rolls);
+            if (score == 0)
+            {
+                // ztráta kola
+                currentTurnAccumulated = 0;
+                UpdateStatus($"Hráč {currentPlayer + 1} hodil bez bodů. Kolo končí.");
+                EndTurn();
+            }
+            else
+            {
+                currentTurnAccumulated += score;
+                UpdateStatus($"Hráč {currentPlayer + 1} získal {score} bodů v tomto hodu. Součet kola: {currentTurnAccumulated}");
+                // pokud hraje CPU, spustit timer aby hodil znovu nebo ukončil
+                if (isSinglePlayer && currentPlayer == 1)
+                {
+                    cpuTimer.Start();
+                }
+            }
+            UpdateScoresLabel();
+        }
+
+        private void EndTurn()
+        {
+            totalScores[currentPlayer] += currentTurnAccumulated;
+            currentTurnAccumulated = 0;
+            // check end conditions
+            if ((!rbTarget.Checked && currentRound >= roundsLimit) || (rbTarget.Checked && totalScores[currentPlayer] >= targetScore))
+            {
+                gameStarted = false;
+                btnRoll.Enabled = false;
+                btnStart.Enabled = true;
+                int winner = GetWinner();
+                // show message and reset scores
+                MessageBox.Show($"Konec hry. Vítěz: Hráč {winner + 1}", "Konec hry", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // reset game state
+                totalScores = new int[2];
+                currentTurnAccumulated = 0;
+                currentRound = 0;
+                currentPlayer = 0;
+                UpdateScoresLabel();
+                UpdateStatus("Skóre vynulováno. Připravit novou hru.");
+                return;
+            }
+
+            // next player or next round
+            if (playersCount == 2)
+            {
+                currentPlayer = (currentPlayer + 1) % 2;
+                if (currentPlayer == 0) currentRound++;
+            }
+            else
+            {
+                // jednohrac: CPU jako druhý hráč
+                currentPlayer = (currentPlayer + 1) % 2;
+                if (currentPlayer == 0) currentRound++;
+            }
+
+            UpdateStatus($"Hraje hráč {currentPlayer + 1}");
+            UpdateScoresLabel();
+        }
+
+        private int GetWinner()
+        {
+            int best = 0;
+            for (int i = 1; i < totalScores.Length; i++) if (totalScores[i] > totalScores[best]) best = i;
+            return best;
+        }
+
+        private void UpdateScoresLabel()
+        {
+            string s = "";
+            for (int i = 0; i < playersCount; i++) s += $"Hráč {i + 1}: {totalScores[i]}  ";
+            lblScores.Text = s + $"| Kolo: {currentRound} | Stav kola: {currentTurnAccumulated}";
+        }
+
+        private void UpdateStatus(string text)
+        {
+            lblStatus.Text = text;
+        }
+
+        private void RefreshDiceDisplayForPlayer(int playerIndex, int[] rolls)
+        {
+            var pb = playerIndex == 0 ? pbDice1 : pbDice2;
+            // clear other player's dice
+            var other = playerIndex == 0 ? pbDice2 : pbDice1;
+            for (int i = 0; i < other.Length; i++) { other[i].Tag = null; other[i].Visible = false; other[i].Invalidate(); }
+            for (int i = 0; i < pb.Length; i++)
+            {
+                pb[i].Visible = i < rolls.Length;
+                pb[i].Tag = i < rolls.Length ? (object)rolls[i] : null;
+                pb[i].Invalidate();
+            }
+        }
+
+        private void pbDice_Paint(object sender, PaintEventArgs e)
+        {
+            var pb = sender as PictureBox;
+            if (pb == null) return;
+            e.Graphics.Clear(pb.BackColor);
+            if (pb.Tag == null) return;
+            int v = (int)pb.Tag;
+            // simple drawing of pips
+            var g = e.Graphics;
+            var rect = new Rectangle(0, 0, pb.Width, pb.Height);
+            g.FillRectangle(Brushes.White, rect);
+            g.DrawRectangle(Pens.Black, 0, 0, pb.Width - 1, pb.Height - 1);
+            var center = new Point(pb.Width / 2, pb.Height / 2);
+            var r = 12;
+            Brush pip = Brushes.Black;
+            // positions
+            Point[] pts = new Point[] {
+                new Point(center.X - 20, center.Y - 20),
+                new Point(center.X + 20, center.Y - 20),
+                new Point(center.X - 20, center.Y),
+                new Point(center.X + 20, center.Y),
+                new Point(center.X - 20, center.Y + 20),
+                new Point(center.X + 20, center.Y + 20),
+                center
+            };
+            switch (v)
+            {
+                case 1:
+                    g.FillEllipse(pip, pts[6].X - r/2, pts[6].Y - r/2, r, r);
+                    break;
+                case 2:
+                    g.FillEllipse(pip, pts[0].X - r/2, pts[0].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[5].X - r/2, pts[5].Y - r/2, r, r);
+                    break;
+                case 3:
+                    g.FillEllipse(pip, pts[0].X - r/2, pts[0].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[6].X - r/2, pts[6].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[5].X - r/2, pts[5].Y - r/2, r, r);
+                    break;
+                case 4:
+                    g.FillEllipse(pip, pts[0].X - r/2, pts[0].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[1].X - r/2, pts[1].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[4].X - r/2, pts[4].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[5].X - r/2, pts[5].Y - r/2, r, r);
+                    break;
+                case 5:
+                    g.FillEllipse(pip, pts[0].X - r/2, pts[0].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[1].X - r/2, pts[1].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[6].X - r/2, pts[6].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[4].X - r/2, pts[4].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[5].X - r/2, pts[5].Y - r/2, r, r);
+                    break;
+                case 6:
+                    g.FillEllipse(pip, pts[0].X - r/2, pts[0].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[1].X - r/2, pts[1].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[2].X - r/2, pts[2].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[3].X - r/2, pts[3].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[4].X - r/2, pts[4].Y - r/2, r, r);
+                    g.FillEllipse(pip, pts[5].X - r/2, pts[5].Y - r/2, r, r);
+                    break;
+            }
+        }
+
+        private int CalculateScore(int[] rolls)
+        {
+            // implement scoring rules from user
+            // counts
+            var counts = new int[7];
+            foreach (var r in rolls) counts[r]++;
+            int dice = rolls.Length;
+
+            // straight 1-6
+            bool straight = true;
+            for (int i = 1; i <= 6; i++) if (counts[i] != 1) straight = false;
+            if (straight && dice == 6) return 1500;
+
+            // pairs? any three pairs not required, user said Dvojice e.g. 22,44,55 = 1000
+            int pairs = 0;
+            for (int i = 1; i <= 6; i++) if (counts[i] == 2) pairs++;
+            if (pairs >= 3) return 1000;
+
+            int score = 0;
+            // six of a kind etc. user rules: for triple of number n: 200,300,400,500,600 for 3x (2x values for 2..6?),
+            // Interpretace: three of 1s = 1000; three of 2-6 = value: 200..600
+            // then increasing multiples for 4,5,6 counts: each additional same die doubles previous set
+            for (int v = 1; v <= 6; v++)
+            {
+                int c = counts[v];
+                if (c >= 3)
+                {
+                    if (v == 1)
+                    {
+                        // base 1000 for three 1s
+                        int baseVal = 1000;
+                        int multiplier = 1 << (c - 3); // each extra die doubles
+                        score += baseVal * multiplier;
+                    }
+                    else
+                    {
+                        int baseVal = v * 100; // 2->200, 3->300 etc.
+                        int multiplier = 1 << (c - 3);
+                        score += baseVal * multiplier;
+                    }
+                }
+                else
+                {
+                    // single 1s and 5s
+                    if (v == 1) score += counts[1] * 100;
+                    if (v == 5) score += counts[5] * 50;
+                }
+            }
+
+            return score;
+        }
+
+        private void cpuTimer_Tick(object? sender, EventArgs e)
+        {
+            cpuTimer.Stop();
+            if (!gameStarted) return;
+            // simple CPU: hodí a pokud získá body, zastaví (náhodné chování) nebo pokračuje
+            btnRoll.PerformClick();
+            // decide whether CPU to end turn: simple random choice
+            if (rnd.NextDouble() < 0.5)
+            {
+                // end turn
+                EndTurn();
+            }
+            else
+            {
+                // continue rolling automatically
+                cpuTimer.Start();
+            }
+        }
+    }
+}
