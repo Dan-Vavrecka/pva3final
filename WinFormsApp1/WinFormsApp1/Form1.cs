@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.ComponentModel;
 using System.Windows.Forms;
 
 namespace WinFormsApp1
@@ -7,23 +8,10 @@ namespace WinFormsApp1
     public partial class Form1 : Form
     {
         // UI controls
-        private ComboBox? cbPlayers;
-        private NumericUpDown? nudDiceCount;
-        private Label? lblPlayers;
-        private Label? lblDice;
-        private RadioButton? rbRounds;
-        private RadioButton? rbTarget;
-        private NumericUpDown? nudRounds;
-        private NumericUpDown? nudTarget;
-        private Button? btnStart;
-        private Button? btnRoll;
-        private Label? lblStatus;
-        private Label? lblScores;
-        private System.Windows.Forms.Timer? cpuTimer;
+        // Designer-initialized controls are declared in Form1.Designer.cs
         // private PictureBox[] pbDice; // removed
         private PictureBox[]? pbDice1;
         private PictureBox[]? pbDice2;
-        private Button? btnEnd;
 
         // Game state
         private Random rnd = new Random();
@@ -37,6 +25,7 @@ namespace WinFormsApp1
         private int currentRound = 0;
         private int[] totalScores = new int[2];
         private int currentTurnAccumulated = 0; // body v aktuálním kole
+        private int[] perPlayerAccumulated = new int[2];
         private bool gameStarted = false;
 
         public Form1()
@@ -49,6 +38,41 @@ namespace WinFormsApp1
             UpdateStatus("Připravit hru");
         }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            // create picture boxes only at runtime (designer cannot execute this code)
+            if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
+            {
+                if (pbDice1 == null) pbDice1 = new PictureBox[6];
+                if (pbDice2 == null) pbDice2 = new PictureBox[6];
+                for (int i = 0; i < 6; i++)
+                {
+                    var pb = new PictureBox();
+                    pb.BorderStyle = BorderStyle.FixedSingle;
+                    pb.Location = new Point(300 + i * 90, 40);
+                    pb.Size = new Size(80, 80);
+                    pb.SizeMode = PictureBoxSizeMode.CenterImage;
+                    pb.Name = "pbDiceP1" + i;
+                    pb.Paint += pbDice_Paint;
+                    this.Controls.Add(pb);
+                    pbDice1[i] = pb;
+                }
+                for (int i = 0; i < 6; i++)
+                {
+                    var pb = new PictureBox();
+                    pb.BorderStyle = BorderStyle.FixedSingle;
+                    pb.Location = new Point(300 + i * 90, 140);
+                    pb.Size = new Size(80, 80);
+                    pb.SizeMode = PictureBoxSizeMode.CenterImage;
+                    pb.Name = "pbDiceP2" + i;
+                    pb.Paint += pbDice_Paint;
+                    this.Controls.Add(pb);
+                    pbDice2[i] = pb;
+                }
+            }
+        }
+
         private void btnEnd_Click(object sender, EventArgs e)
         {
             // okamžité ukončení hry a vynulování skóre
@@ -56,6 +80,7 @@ namespace WinFormsApp1
             btnRoll.Enabled = false;
             btnStart.Enabled = true;
             totalScores = new int[2];
+            perPlayerAccumulated = new int[2];
             currentTurnAccumulated = 0;
             currentRound = 0;
             currentPlayer = 0;
@@ -82,72 +107,100 @@ namespace WinFormsApp1
             RefreshDiceDisplayForPlayer(0, new int[diceCount]);
         }
 
+
+
         private void btnRoll_Click(object sender, EventArgs e)
         {
             if (!gameStarted) return;
-            // proveď hod kostkami
+            // proveď hod kostkami - jeden hod = konec tahu
             int[] rolls = new int[diceCount];
             for (int i = 0; i < diceCount; i++) rolls[i] = rnd.Next(1, 7);
             RefreshDiceDisplayForPlayer(currentPlayer, rolls);
             int score = CalculateScore(rolls);
+            currentTurnAccumulated = score; // jeden hod
             if (score == 0)
             {
-                // ztráta kola
-                currentTurnAccumulated = 0;
-                UpdateStatus($"Hráč {currentPlayer + 1} hodil bez bodů. Kolo končí.");
-                EndTurn();
+                UpdateStatus($"Hráč {currentPlayer + 1} hodil bez bodů.");
             }
             else
             {
-                currentTurnAccumulated += score;
-                UpdateStatus($"Hráč {currentPlayer + 1} získal {score} bodů v tomto hodu. Součet kola: {currentTurnAccumulated}");
-                // pokud hraje CPU, spustit timer aby hodil znovu nebo ukončil
-                if (isSinglePlayer && currentPlayer == 1)
-                {
-                    cpuTimer.Start();
-                }
+                UpdateStatus($"Hráč {currentPlayer + 1} získal {score} bodů.");
             }
+            // automaticky ukončit tah a přepnout hráče
+            EndTurn();
             UpdateScoresLabel();
         }
 
         private void EndTurn()
         {
+            // add accumulated points from this turn
             totalScores[currentPlayer] += currentTurnAccumulated;
             currentTurnAccumulated = 0;
-            // check end conditions
-            if ((!rbTarget.Checked && currentRound >= roundsLimit) || (rbTarget.Checked && totalScores[currentPlayer] >= targetScore))
-            {
-                gameStarted = false;
-                btnRoll.Enabled = false;
-                btnStart.Enabled = true;
-                int winner = GetWinner();
-                // show message and reset scores
-                MessageBox.Show($"Konec hry. Vítěz: Hráč {winner + 1}", "Konec hry", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                // reset game state
-                totalScores = new int[2];
-                currentTurnAccumulated = 0;
-                currentRound = 0;
-                currentPlayer = 0;
-                UpdateScoresLabel();
-                UpdateStatus("Skóre vynulováno. Připravit novou hru.");
-                return;
-            }
 
-            // next player or next round
-            if (playersCount == 2)
+            // determine next player
+            int nextPlayer = (currentPlayer + 1) % 2;
+
+            // Check end conditions
+            if (rbTarget.Checked)
             {
-                currentPlayer = (currentPlayer + 1) % 2;
-                if (currentPlayer == 0) currentRound++;
+                if (totalScores[currentPlayer] >= targetScore)
+                {
+                    int winner = GetWinner();
+                    string scoreText = $"Hráč 1: {totalScores[0]}\nHráč 2: {totalScores[1]}";
+                    MessageBox.Show($"Konec hry. Vítěz: Hráč {winner + 1}\n\n{scoreText}", "Konec hry", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Application.Exit();
+                    return;
+                }
             }
             else
             {
-                // jednohrac: CPU jako druhý hráč
-                currentPlayer = (currentPlayer + 1) % 2;
-                if (currentPlayer == 0) currentRound++;
+                // rounds mode: if we just finished the last player's turn of the final round, end game
+                if (nextPlayer == 0 && currentRound >= roundsLimit)
+                {
+                    int winner = GetWinner();
+                    string scoreText = $"Hráč 1: {totalScores[0]}\nHráč 2: {totalScores[1]}";
+                    MessageBox.Show($"Konec hry. Vítěz: Hráč {winner + 1}\n\n{scoreText}", "Konec hry", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Application.Exit();
+                    return;
+                }
             }
+
+            // switch to next player
+            currentPlayer = nextPlayer;
+            // if we've wrapped back to player 0, advance round
+            if (currentPlayer == 0) currentRound++;
 
             UpdateStatus($"Hraje hráč {currentPlayer + 1}");
             UpdateScoresLabel();
+
+            // manage buttons
+            btnRoll.Enabled = true;
+
+            // if CPU's turn in single-player, perform CPU turn automatically
+            if (isSinglePlayer && currentPlayer == 1)
+            {
+                DoCpuTurn();
+            }
+        }
+
+        private void DoCpuTurn()
+        {
+            if (!gameStarted) return;
+            // CPU rolls once automatically
+            int[] rolls = new int[diceCount];
+            for (int i = 0; i < diceCount; i++) rolls[i] = rnd.Next(1, 7);
+            int score = CalculateScore(rolls);
+            currentTurnAccumulated = score;
+            if (score == 0)
+            {
+                UpdateStatus($"CPU hodil bez bodů.");
+            }
+            else
+            {
+                UpdateStatus($"CPU získal {score} bodů.");
+            }
+            // add CPU result and end CPU turn
+            EndTurn();
         }
 
         private int GetWinner()
@@ -172,11 +225,12 @@ namespace WinFormsApp1
         private void RefreshDiceDisplayForPlayer(int playerIndex, int[] rolls)
         {
             var pb = playerIndex == 0 ? pbDice1 : pbDice2;
-            // clear other player's dice
             var other = playerIndex == 0 ? pbDice2 : pbDice1;
-            for (int i = 0; i < other.Length; i++) { other[i].Tag = null; other[i].Visible = false; other[i].Invalidate(); }
+            if (pb == null || other == null) return; // designer/runtime safety
+            for (int i = 0; i < other.Length; i++) { if (other[i] != null) { other[i].Tag = null; other[i].Visible = false; other[i].Invalidate(); } }
             for (int i = 0; i < pb.Length; i++)
             {
+                if (pb[i] == null) continue;
                 pb[i].Visible = i < rolls.Length;
                 pb[i].Tag = i < rolls.Length ? (object)rolls[i] : null;
                 pb[i].Invalidate();
@@ -298,23 +352,6 @@ namespace WinFormsApp1
             return score;
         }
 
-        private void cpuTimer_Tick(object? sender, EventArgs e)
-        {
-            cpuTimer.Stop();
-            if (!gameStarted) return;
-            // simple CPU: hodí a pokud získá body, zastaví (náhodné chování) nebo pokračuje
-            btnRoll.PerformClick();
-            // decide whether CPU to end turn: simple random choice
-            if (rnd.NextDouble() < 0.5)
-            {
-                // end turn
-                EndTurn();
-            }
-            else
-            {
-                // continue rolling automatically
-                cpuTimer.Start();
-            }
-        }
+        // CPU automatic play removed. CPU will only play when user clicks "Hodit kostkami" even in single-player mode.
     }
 }

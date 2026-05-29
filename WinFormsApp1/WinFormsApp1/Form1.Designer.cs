@@ -6,6 +6,21 @@
         ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+        // Designer fields (generated)
+        private System.Windows.Forms.ComboBox cbPlayers;
+        private System.Windows.Forms.NumericUpDown nudDiceCount;
+        private System.Windows.Forms.Label lblPlayers;
+        private System.Windows.Forms.Label lblDice;
+        private System.Windows.Forms.RadioButton rbRounds;
+        private System.Windows.Forms.RadioButton rbTarget;
+        private System.Windows.Forms.NumericUpDown nudRounds;
+        private System.Windows.Forms.NumericUpDown nudTarget;
+        private System.Windows.Forms.Button btnStart;
+        private System.Windows.Forms.Button btnEnd;
+        private System.Windows.Forms.Button btnRoll;
+        private System.Windows.Forms.Label lblStatus;
+        private System.Windows.Forms.Label lblScores;
+        private System.Windows.Forms.Timer cpuTimer;
 
         /// <summary>
         ///  Clean up any resources being used.
@@ -214,35 +229,7 @@
             // cpuTimer
             // 
             this.cpuTimer.Interval = 800;
-            this.cpuTimer.Tick += new System.EventHandler(this.cpuTimer_Tick);
-
-            // picture boxes for dice - player 1 and player 2
-            this.pbDice1 = new System.Windows.Forms.PictureBox[6];
-            this.pbDice2 = new System.Windows.Forms.PictureBox[6];
-            for (int i = 0; i < 6; i++)
-            {
-                var pb = new System.Windows.Forms.PictureBox();
-                pb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-                pb.Location = new System.Drawing.Point(300 + i * 90, 40);
-                pb.Size = new System.Drawing.Size(80, 80);
-                pb.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-                pb.Name = "pbDiceP1" + i;
-                pb.Paint += new System.Windows.Forms.PaintEventHandler(this.pbDice_Paint);
-                this.Controls.Add(pb);
-                this.pbDice1[i] = pb;
-            }
-            for (int i = 0; i < 6; i++)
-            {
-                var pb = new System.Windows.Forms.PictureBox();
-                pb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-                pb.Location = new System.Drawing.Point(300 + i * 90, 140);
-                pb.Size = new System.Drawing.Size(80, 80);
-                pb.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-                pb.Name = "pbDiceP2" + i;
-                pb.Paint += new System.Windows.Forms.PaintEventHandler(this.pbDice_Paint);
-                this.Controls.Add(pb);
-                this.pbDice2[i] = pb;
-            }
+            // picture boxes for dice will be created at runtime in the form constructor
 
             // 
             // Form1

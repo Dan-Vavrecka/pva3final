@@ -1,0 +1,250 @@
+﻿namespace WinFormsApp1
+{
+    partial class Form1
+    {
+        /// <summary>
+        ///  Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        ///  Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        ///  Required method for Designer support - do not modify
+        ///  the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            components = new System.ComponentModel.Container();
+            this.cbPlayers = new System.Windows.Forms.ComboBox();
+            this.nudDiceCount = new System.Windows.Forms.NumericUpDown();
+            this.lblPlayers = new System.Windows.Forms.Label();
+            this.lblDice = new System.Windows.Forms.Label();
+            this.rbRounds = new System.Windows.Forms.RadioButton();
+            this.rbTarget = new System.Windows.Forms.RadioButton();
+            this.nudRounds = new System.Windows.Forms.NumericUpDown();
+            this.nudTarget = new System.Windows.Forms.NumericUpDown();
+            this.btnStart = new System.Windows.Forms.Button();
+            this.btnRoll = new System.Windows.Forms.Button();
+            this.lblStatus = new System.Windows.Forms.Label();
+            this.lblScores = new System.Windows.Forms.Label();
+            this.cpuTimer = new System.Windows.Forms.Timer(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.nudDiceCount)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudRounds)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudTarget)).BeginInit();
+            this.SuspendLayout();
+            // 
+            // cbPlayers
+            // 
+            this.cbPlayers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbPlayers.Items.AddRange(new object[] {
+            "1",
+            "2"});
+            this.cbPlayers.Location = new System.Drawing.Point(12, 28);
+            this.cbPlayers.Name = "cbPlayers";
+            this.cbPlayers.Size = new System.Drawing.Size(60, 23);
+            this.cbPlayers.TabIndex = 0;
+            // 
+            // nudDiceCount
+            // 
+            this.nudDiceCount.Location = new System.Drawing.Point(12, 78);
+            this.nudDiceCount.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudDiceCount.Maximum = new decimal(new int[] {
+            6,
+            0,
+            0,
+            0});
+            this.nudDiceCount.Value = new decimal(new int[] {
+            6,
+            0,
+            0,
+            0});
+            this.nudDiceCount.Name = "nudDiceCount";
+            this.nudDiceCount.Size = new System.Drawing.Size(60, 23);
+            this.nudDiceCount.TabIndex = 1;
+            // 
+            // lblPlayers
+            // 
+            this.lblPlayers.AutoSize = true;
+            this.lblPlayers.Location = new System.Drawing.Point(12, 10);
+            this.lblPlayers.Name = "lblPlayers";
+            this.lblPlayers.Size = new System.Drawing.Size(88, 15);
+            this.lblPlayers.Text = "Počet hráčů:";
+            // 
+            // lblDice
+            // 
+            this.lblDice.AutoSize = true;
+            this.lblDice.Location = new System.Drawing.Point(12, 60);
+            this.lblDice.Name = "lblDice";
+            this.lblDice.Size = new System.Drawing.Size(101, 15);
+            this.lblDice.Text = "Počet kostek:";
+            // 
+            // rbRounds
+            // 
+            this.rbRounds.AutoSize = true;
+            this.rbRounds.Location = new System.Drawing.Point(12, 120);
+            this.rbRounds.Name = "rbRounds";
+            this.rbRounds.Size = new System.Drawing.Size(101, 19);
+            this.rbRounds.TabIndex = 4;
+            this.rbRounds.TabStop = true;
+            this.rbRounds.Text = "Počet kol";
+            this.rbRounds.Checked = true;
+            this.rbRounds.UseVisualStyleBackColor = true;
+            // 
+            // rbTarget
+            // 
+            this.rbTarget.AutoSize = true;
+            this.rbTarget.Location = new System.Drawing.Point(12, 150);
+            this.rbTarget.Name = "rbTarget";
+            this.rbTarget.Size = new System.Drawing.Size(143, 19);
+            this.rbTarget.TabIndex = 5;
+            this.rbTarget.TabStop = true;
+            this.rbTarget.Text = "Cílové skóre";
+            this.rbTarget.UseVisualStyleBackColor = true;
+            // 
+            // nudRounds
+            // 
+            this.nudRounds.Location = new System.Drawing.Point(160, 119);
+            this.nudRounds.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudRounds.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.nudRounds.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.nudRounds.Name = "nudRounds";
+            this.nudRounds.Size = new System.Drawing.Size(80, 23);
+            this.nudRounds.TabIndex = 6;
+            // 
+            // nudTarget
+            // 
+            this.nudTarget.Location = new System.Drawing.Point(160, 149);
+            this.nudTarget.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudTarget.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.nudTarget.Value = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.nudTarget.Name = "nudTarget";
+            this.nudTarget.Size = new System.Drawing.Size(100, 23);
+            this.nudTarget.TabIndex = 7;
+            // 
+            // btnStart
+            // 
+            this.btnStart.Location = new System.Drawing.Point(12, 190);
+            this.btnStart.Name = "btnStart";
+            this.btnStart.Size = new System.Drawing.Size(100, 30);
+            this.btnStart.TabIndex = 8;
+            this.btnStart.Text = "Start hry";
+            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            // 
+            // btnEnd
+            // 
+            this.btnEnd = new System.Windows.Forms.Button();
+            this.btnEnd.Location = new System.Drawing.Point(130, 190);
+            this.btnEnd.Name = "btnEnd";
+            this.btnEnd.Size = new System.Drawing.Size(100, 30);
+            this.btnEnd.TabIndex = 10;
+            this.btnEnd.Text = "Konec hry";
+            this.btnEnd.UseVisualStyleBackColor = true;
+            this.btnEnd.Click += new System.EventHandler(this.btnEnd_Click);
+            // 
+            // btnRoll
+            // 
+            this.btnRoll.Location = new System.Drawing.Point(12, 240);
+            this.btnRoll.Name = "btnRoll";
+            this.btnRoll.Size = new System.Drawing.Size(100, 40);
+            this.btnRoll.TabIndex = 9;
+            this.btnRoll.Text = "Hodit kostkami";
+            this.btnRoll.UseVisualStyleBackColor = true;
+            this.btnRoll.Enabled = false;
+            this.btnRoll.Click += new System.EventHandler(this.btnRoll_Click);
+            // 
+            // lblStatus
+            // 
+            this.lblStatus.AutoSize = true;
+            this.lblStatus.Location = new System.Drawing.Point(12, 300);
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(39, 15);
+            this.lblStatus.Text = "Čeká";
+            // 
+            // lblScores
+            // 
+            this.lblScores.AutoSize = true;
+            this.lblScores.Location = new System.Drawing.Point(300, 10);
+            this.lblScores.Name = "lblScores";
+            this.lblScores.Size = new System.Drawing.Size(100, 15);
+            this.lblScores.Text = "Skóre hráčů:";
+            // 
+            // cpuTimer
+            // 
+            this.cpuTimer.Interval = 800;
+            this.cpuTimer.Tick += new System.EventHandler(this.cpuTimer_Tick);
+
+            // picture boxes for dice will be created at runtime in the form constructor
+
+            // 
+            // Form1
+            // 
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(880, 420);
+            this.Controls.Add(this.cbPlayers);
+            this.Controls.Add(this.nudDiceCount);
+            this.Controls.Add(this.lblPlayers);
+            this.Controls.Add(this.lblDice);
+            this.Controls.Add(this.rbRounds);
+            this.Controls.Add(this.rbTarget);
+            this.Controls.Add(this.nudRounds);
+            this.Controls.Add(this.nudTarget);
+            this.Controls.Add(this.btnStart);
+            this.Controls.Add(this.btnRoll);
+            this.Controls.Add(this.btnEnd);
+            this.Controls.Add(this.lblStatus);
+            this.Controls.Add(this.lblScores);
+            this.Name = "Form1";
+            this.Text = "Hod kostkami";
+            ((System.ComponentModel.ISupportInitialize)(this.nudDiceCount)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudRounds)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudTarget)).EndInit();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
+
+        #endregion
+    }
+}
