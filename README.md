@@ -1,6 +1,6 @@
 # 🎲 Hra: Hod kostkami (C# Windows Forms)
 
-Aplikace představuje plně funkční desktopovou hru v kostky (známou také jako *Zonkey* nebo *10000*) naprogramovanou v jazyce **C#** pro rozhraní **Windows Forms (.NET)**. Projekt kombinuje dynamické řízení prvků uživatelského rozhraní s vektorovým vykreslováním grafiky.
+Aplikace představuje plně funkční desktopovou hru v kostky naprogramovanou v jazyce **C#** pro rozhraní **Windows Forms (.NET)**. Projekt kombinuje dynamické řízení prvků uživatelského rozhraní s vektorovým vykreslováním grafiky.
 
 ---
 
