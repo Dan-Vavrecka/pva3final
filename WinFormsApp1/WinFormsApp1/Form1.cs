@@ -3,6 +3,8 @@ using System.Drawing;
 using System.ComponentModel;
 using System.Windows.Forms;
 
+//Daniel Vavrečka, 3.C, PVA, Kostky
+
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
