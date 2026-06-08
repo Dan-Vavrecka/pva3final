@@ -29,10 +29,8 @@ Před samotným spuštěním hry (kliknutím na tlačítko `Start hry`) má uži
 Aplikace po každém hodu provede frekvenční analýzu padnutých čísel a vypočítá skóre podle následující hierarchie:
 
 ### 🌟 Speciální kombinace (Při hodu 6 kostkami)
-1. **Čistá postupka `1-2-3-4-5-6`** $
-ightarrow$ **1 500 bodů**
-2. **Tři libovolné dvojice** (např. `2-2, 4-4, 5-5`) $
-ightarrow$ **1 000 bodů**
+1. **Čistá postupka `1-2-3-4-5-6`**  **1 500 bodů**
+2. **Tři libovolné dvojice** (např. `2-2, 4-4, 5-5`)  **1 000 bodů**
 
 ### 📊 Opakující se hodnoty (Trojice a vícenásobky)
 Základ tvoří **trojice stejných čísel**. Každá další kostka s touto hodnotou navíc předchozí zisk **zdvojnásobí**:
@@ -48,10 +46,8 @@ Základ tvoří **trojice stejných čísel**. Každá další kostka s touto ho
 
 ### 🎯 Samostatné kostky
 Pokud kostky netvoří žádnou z výše uvedených kombinací, bodují pouze tyto samostatné hodnoty:
-* Samostatná **Jednička (1)** $
-ightarrow$ **100 bodů** za kus
-* Samostatná **Pětka (5)** $
-ightarrow$ **50 bodů** za kus
+* Samostatná **Jednička (1)**  **100 bodů** za kus
+* Samostatná **Pětka (5)**  **50 bodů** za kus
 * *(Ostatní čísla 2, 3, 4, 6 samostatně žádné body nepřinášejí)*
 
 ---
