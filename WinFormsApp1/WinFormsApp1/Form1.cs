@@ -22,13 +22,13 @@ namespace WinFormsApp1
         private int playersCount = 2;
         private bool isSinglePlayer = true;
         private int diceCount = 6;
-        private int roundsLimit = 5;
-        private int targetScore = 10000;
-        private int currentRound = 0;
-        private int[] totalScores = new int[2];
-        private int currentTurnAccumulated = 0; // body v aktuálním kole
+        private int limitKol = 5;
+        private int maxSkore = 10000;
+        private int aktualniKolo = 0;
+        private int[] celkoveSkore = new int[2];
+        private int aktualniPocetBodu = 0;
         private int[] perPlayerAccumulated = new int[2];
-        private bool gameStarted = false;
+        private bool startHry = false;
 
         public Form1()
         {
@@ -78,16 +78,16 @@ namespace WinFormsApp1
         private void btnEnd_Click(object sender, EventArgs e)
         {
             // okamžité ukončení hry a vynulování skóre
-            gameStarted = false;
+            startHry = false;
             btnRoll.Enabled = false;
             btnStart.Enabled = true;
-            totalScores = new int[2];
+            celkoveSkore = new int[2];
             perPlayerAccumulated = new int[2];
-            currentTurnAccumulated = 0;
-            currentRound = 0;
+            aktualniPocetBodu = 0;
+            aktualniKolo = 0;
             currentPlayer = 0;
             UpdateScoresLabel();
-            UpdateStatus("Hra ukončena uživatelem. Skóre vynulováno.");
+            UpdateStatus("Hra ukončena. Skóre vynulováno.");
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -95,13 +95,13 @@ namespace WinFormsApp1
             isSinglePlayer = cbPlayers.SelectedIndex == 0;
             playersCount = 2; // vždy interně dva hráči (druhý je CPU pokud isSinglePlayer)
             diceCount = (int)nudDiceCount.Value;
-            roundsLimit = (int)nudRounds.Value;
-            targetScore = (int)nudTarget.Value;
+            limitKol = (int)nudRounds.Value;
+            maxSkore = (int)nudTarget.Value;
             currentPlayer = 0;
-            currentRound = 1;
-            totalScores = new int[2];
-            currentTurnAccumulated = 0;
-            gameStarted = true;
+            aktualniKolo = 1;
+            celkoveSkore = new int[2];
+            aktualniPocetBodu = 0;
+            startHry = true;
             btnRoll.Enabled = true;
             btnStart.Enabled = false;
             UpdateScoresLabel();
@@ -113,13 +113,13 @@ namespace WinFormsApp1
 
         private void btnRoll_Click(object sender, EventArgs e)
         {
-            if (!gameStarted) return;
+            if (!startHry) return;
             // proveď hod kostkami - jeden hod = konec tahu
             int[] rolls = new int[diceCount];
             for (int i = 0; i < diceCount; i++) rolls[i] = rnd.Next(1, 7);
             RefreshDiceDisplayForPlayer(currentPlayer, rolls);
             int score = CalculateScore(rolls);
-            currentTurnAccumulated = score; // jeden hod
+            aktualniPocetBodu = score; // jeden hod
             if (score == 0)
             {
                 UpdateStatus($"Hráč {currentPlayer + 1} hodil bez bodů.");
@@ -136,8 +136,8 @@ namespace WinFormsApp1
         private void EndTurn()
         {
             // add accumulated points from this turn
-            totalScores[currentPlayer] += currentTurnAccumulated;
-            currentTurnAccumulated = 0;
+            celkoveSkore[currentPlayer] += aktualniPocetBodu;
+            aktualniPocetBodu = 0;
 
             // determine next player
             int nextPlayer = (currentPlayer + 1) % 2;
@@ -145,10 +145,10 @@ namespace WinFormsApp1
             // Check end conditions
             if (rbTarget.Checked)
             {
-                if (totalScores[currentPlayer] >= targetScore)
+                if (celkoveSkore[currentPlayer] >= maxSkore)
                 {
                     int winner = GetWinner();
-                    string scoreText = $"Hráč 1: {totalScores[0]}\nHráč 2: {totalScores[1]}";
+                    string scoreText = $"Hráč 1: {celkoveSkore[0]}\nHráč 2: {celkoveSkore[1]}";
                     MessageBox.Show($"Konec hry. Vítěz: Hráč {winner + 1}\n\n{scoreText}", "Konec hry", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     Application.Exit();
                     return;
@@ -157,10 +157,10 @@ namespace WinFormsApp1
             else
             {
                 // rounds mode: if we just finished the last player's turn of the final round, end game
-                if (nextPlayer == 0 && currentRound >= roundsLimit)
+                if (nextPlayer == 0 && aktualniKolo >= limitKol)
                 {
                     int winner = GetWinner();
-                    string scoreText = $"Hráč 1: {totalScores[0]}\nHráč 2: {totalScores[1]}";
+                    string scoreText = $"Hráč 1: {celkoveSkore[0]}\nHráč 2: {celkoveSkore[1]}";
                     MessageBox.Show($"Konec hry. Vítěz: Hráč {winner + 1}\n\n{scoreText}", "Konec hry", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     Application.Exit();
                     return;
@@ -170,7 +170,7 @@ namespace WinFormsApp1
             // switch to next player
             currentPlayer = nextPlayer;
             // if we've wrapped back to player 0, advance round
-            if (currentPlayer == 0) currentRound++;
+            if (currentPlayer == 0) aktualniKolo++;
 
             UpdateStatus($"Hraje hráč {currentPlayer + 1}");
             UpdateScoresLabel();
@@ -187,12 +187,11 @@ namespace WinFormsApp1
 
         private void DoCpuTurn()
         {
-            if (!gameStarted) return;
-            // CPU rolls once automatically
+            if (!startHry) return;
             int[] rolls = new int[diceCount];
             for (int i = 0; i < diceCount; i++) rolls[i] = rnd.Next(1, 7);
             int score = CalculateScore(rolls);
-            currentTurnAccumulated = score;
+            aktualniPocetBodu = score;
             if (score == 0)
             {
                 UpdateStatus($"CPU hodil bez bodů.");
@@ -201,22 +200,21 @@ namespace WinFormsApp1
             {
                 UpdateStatus($"CPU získal {score} bodů.");
             }
-            // add CPU result and end CPU turn
             EndTurn();
         }
 
         private int GetWinner()
         {
             int best = 0;
-            for (int i = 1; i < totalScores.Length; i++) if (totalScores[i] > totalScores[best]) best = i;
+            for (int i = 1; i < celkoveSkore.Length; i++) if (celkoveSkore[i] > celkoveSkore[best]) best = i;
             return best;
         }
 
         private void UpdateScoresLabel()
         {
             string s = "";
-            for (int i = 0; i < playersCount; i++) s += $"Hráč {i + 1}: {totalScores[i]}  ";
-            lblScores.Text = s + $"| Kolo: {currentRound} | Stav kola: {currentTurnAccumulated}";
+            for (int i = 0; i < playersCount; i++) s += $"Hráč {i + 1}: {celkoveSkore[i]}  ";
+            lblScores.Text = s + $"| Kolo: {aktualniKolo} | Stav kola: {aktualniPocetBodu}";
         }
 
         private void UpdateStatus(string text)
@@ -246,7 +244,7 @@ namespace WinFormsApp1
             e.Graphics.Clear(pb.BackColor);
             if (pb.Tag == null) return;
             int v = (int)pb.Tag;
-            // simple drawing of pips
+            // kreslení teček
             var g = e.Graphics;
             var rect = new Rectangle(0, 0, pb.Width, pb.Height);
             g.FillRectangle(Brushes.White, rect);
@@ -254,7 +252,7 @@ namespace WinFormsApp1
             var center = new Point(pb.Width / 2, pb.Height / 2);
             var r = 12;
             Brush pip = Brushes.Black;
-            // positions
+            // pozice
             Point[] pts = new Point[] {
                 new Point(center.X - 20, center.Y - 20),
                 new Point(center.X + 20, center.Y - 20),
@@ -304,7 +302,7 @@ namespace WinFormsApp1
 
         private int CalculateScore(int[] rolls)
         {
-            // implement scoring rules from user
+            // pravidla
             // counts
             var counts = new int[7];
             foreach (var r in rolls) counts[r]++;
